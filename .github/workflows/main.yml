@@ -1,21 +1,31 @@
-name: Deploy to Firebase Hosting
+# Nome do Workflow (Robô)
+name: Deploy to Firebase Hosting on merge
 
+# Quando o robô deve rodar?
+# 'on: push: branches: [ "main" ]' significa:
+# "Rode este robô sempre que novos arquivos forem enviados (push)
+# para a pasta principal (main) do meu GitHub"
 on:
   push:
     branches:
-      - main
+      - main # Mude para 'master' se o seu GitHub usar esse nome
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build_and_deploy:
+    runs-on: ubuntu-latest # O robô vai rodar num "mini-computador" Linux
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
+      
+      # Passo 1: O robô "baixa" o seu código (index.html, etc) do GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Deploy no Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_TOKEN }}'
-          channelId: live
-          projectId: meu-app-financas-f1ac0
+      # Passo 2: O robô instala o Firebase-CLI (o comando 'firebase')
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      # Passo 3: O robô faz o deploy
+      - name: Deploy to Firebase
+        run: firebase deploy --only hosting --token "${{ secrets.FIREBASE_TOKEN }}" --non-interactive
+        env:
+          # Esta é a "senha" secreta que guardamos no GitHub
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
